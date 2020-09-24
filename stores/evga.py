@@ -103,7 +103,7 @@ class Evga:
 
     def buy(self, delay=5, test=False, model=""):
         selector = '//a[@id="LFrame_btnAddToCart"]'
-        associate_code = ""
+        associate_code = "&associatecode=S1UQP0HAKH2GPDI"
         if test:
             url = "https://www.evga.com/products/product.aspx?pn=08G-P4-3289-KR"
             self.driver.get(url + associate_code)
