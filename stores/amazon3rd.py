@@ -9,6 +9,7 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver import ActionChains
 
 from notifications.notifications import NotificationHandler
 from utils.logger import log
@@ -36,7 +37,7 @@ class AmazonThird:
             log.info("Already logged in")
         else:
             self.login()
-            time.sleep(15)
+            time.sleep(5)
 
     def is_logged_in(self):
         try:
@@ -96,9 +97,9 @@ class AmazonThird:
         log.info("Item in stock!")
         
         self.notification_handler.send_notification(
-            f"Item was found:" + item_url
+            f"Amazon THIRD PARTY item was found:" + CART_URL + item_url
         )
-        self.buy_now()
+        self.buy_now(item_url)
 
 #        try:
 #            price_str = self.driver.find_element_by_id("priceblock_ourprice").text
@@ -114,7 +115,7 @@ class AmazonThird:
 #        )
 #        log.info(f"Price was too high {price_int}")
 
-    def buy_now(self):
+    def buy_now(self, asin):
         log.info("Clicking 'Buy Now'.")
                                 #product_link = price_str2.find_element(
                        #     By.XPATH, (".//preceding-sibling::td[2]//a")
@@ -124,11 +125,14 @@ class AmazonThird:
         #self.driver.find_element_by_xpath(
         #    './/*[@id="buy-now-button"]').click()
         #)
+        time.sleep(.5)
         atc_button = text_element.find_element(
             By.XPATH, ("./../../input")
         )
         log.info("text:" + atc_button.text)
-        atc_button.click()
+        atc_button.send_keys(' ')
+        #actions = ActionChains(self.driver)
+        #actions.move_to_element(atc_button).click().perform()
 
         selenium_utils.wait_for_any_title(self.driver, ["Amazon.com Shopping Cart"], 10)        
         #self.wait.until(ExpectedConditions.titleContains("Amazon.com Shopping Cart"));
@@ -136,11 +140,11 @@ class AmazonThird:
 
         self.driver.find_element_by_id(
             'hlb-ptc-btn-native'
-        ).click()
+        ).send_keys(Keys.ENTER)
 
-        selenium_utils.wait_for_any_title(self.driver, ["Amazon.com Checkout", "Amazon Sign-In"], 10)    
+        selenium_utils.wait_for_any_title(self.driver, ["Amazon.com Checkout", "Amazon Sign-In"], 30)    
         if self.driver.title == "Amazon Sign-In":
-            time.sleep(2)
+            time.sleep(.5)
             self.driver.find_element_by_xpath('//input[@id="ap_password"]').send_keys(
                 self.password + Keys.RETURN
             )
@@ -150,15 +154,18 @@ class AmazonThird:
 # <input id="signInSubmit" tabindex="4" class="a-button-input" type="submit" aria-labelledby="auth-signin-button-announce">
         
         # Allow time for button to appear
-        time.sleep(.5)
-        log.info("Clicking 'Place Your Order'.")
-        self.driver.find_element_by_name(
-            "placeYourOrder1"
-        ).click()
+        if asin != "B014W3EM2W":
+            time.sleep(.5)
+            log.info("Clicking 'Place Your Order'.")
+            self.driver.find_element_by_name(
+                "placeYourOrder1"
+            ).send_keys(Keys.ENTER)
+            
+            self.notification_handler.send_notification(
+                f"Item was purchased! Check your Amazon account:" + asin
+            )
 
-        self.notification_handler.send_notification(
-            f"Item was purchased! Check your Amazon account."
-        )
+
 
     def force_stop(self):
         self.driver.stop_client()
