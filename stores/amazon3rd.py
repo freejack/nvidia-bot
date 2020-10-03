@@ -137,10 +137,18 @@ class AmazonThird:
         selenium_utils.wait_for_any_title(self.driver, ["Amazon.com Shopping Cart"], 10)        
         #self.wait.until(ExpectedConditions.titleContains("Amazon.com Shopping Cart"));
         log.info("Shopping Cart Loaded!")
+        
+        try:
+            log.info("clicking proceed in short cart")
+            self.driver.find_element_by_id(
+                'hlb-ptc-btn-native'
+            ).send_keys(Keys.ENTER)
+        except:
+            log.info("clicking proceed in long cart")
+            self.driver.find_element_by_id(
+                'proceed-to-checkout-action'
+            ).send_keys(Keys.ENTER)
 
-        self.driver.find_element_by_id(
-            'hlb-ptc-btn-native'
-        ).send_keys(Keys.ENTER)
 
         selenium_utils.wait_for_any_title(self.driver, ["Amazon.com Checkout", "Amazon Sign-In"], 30)    
         if self.driver.title == "Amazon Sign-In":
